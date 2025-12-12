@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Ultimate Button Creator</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+  }
+
+  input, select {
+    padding: 8px;
+    font-size: 16px;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  #previewButton, #fullscreenButton {
+    margin-top: 20px;
+    font-size: 24px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  #previewButton img, #previewButton video,
+  #fullscreenButton img, #fullscreenButton video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+  }
+
+  #fullscreenView {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    background: black;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  #eventOutput {
+    margin-top: 20px;
+    font-size: 50px;
+    display: none;
+  }
+
+  #exitFullscreen {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 30px;
+    padding: 5px 10px;
+    cursor: pointer;
+    z-index: 10000;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 5px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Button Creator 😄✨</h1>
+
+<h2>1. Button einstellen</h2>
+<label>Button-Typ:</label>
+<select id="buttonType">
+  <option value="text">Text</option>
+  <option value="image">Bild</option>
+  <option value="video">Video</option>
+</select>
+
+<label>Button-Text (wenn Text):</label>
+<input id="buttonText" placeholder="Starten!">
+
+<label>Button-Datei (Bild/Video):</label>
+<input type="file" id="buttonFile" accept="image/*,video/*">
+
+<label>Button-Farbe:</label>
+<input type="color" id="buttonColor" value="#3498db">
+
+<label>Textfarbe:</label>
+<input type="color" id="buttonTextColor" value="#ffffff">
+
+<label>Button-Größe (px Höhe = Breite):</label>
+<input id="buttonSize" type="number" value="150">
+
+<label>Form:</label>
+<select id="buttonShape">
+  <option value="0">Rechteck</option>
+  <option value="10">Abgerundet</option>
+  <option value="50">Kreis</option>
+</select>
+
+<button id="applyButton">Übernehmen</button>
+
+<h2>2. Event einstellen</h2>
+<label>Event-Typ:</label>
+<select id="eventType">
+  <option value="text">Text</option>
+  <option value="image">Bild</option>
+  <option value="video">Video</option>
+  <option value="audio">Audio</option>
+</select>
+
+<label>Event-Text (wenn Text):</label>
+<input id="eventText" placeholder="STIMMT!">
+
+<label>Event-Farbe:</label>
+<input type="color" id="eventColor" value="#00ff00">
+
+<label>Event-Größe:</label>
+<input id="eventSize" type="number" value="80">
+
+<label>Event-Datei:</label>
+<input type="file" id="eventFile" accept="image/*,video/*,audio/*">
+
+<label>Event-Dauer (ms):</label>
+<input id="eventDuration" type="number" value="5000">
+
+<button id="fullscreenBtn">Vollbild starten</button>
+
+<hr>
+
+<button id="previewButton">Beispiel</button>
+
+<div id="fullscreenView">
+  <button id="exitFullscreen">✖</button>
+  <button id="fullscreenButton"></button>
+  <div id="eventOutput"></div>
+</div>
+
+<script>
+let buttonMediaURL = null;
+let eventMediaURL = null;
+
+function loadFile(input, callback) {
+  const file = input.files[0];
+  if (!file) return callback(null);
+  const url = URL.createObjectURL(file);
+  callback(url);
+}
+
+// Button anwenden
+document.getElementById("applyButton").addEventListener("click", () => {
+  const btn = document.getElementById("previewButton");
+  const type = document.getElementById("buttonType").value;
+  const size = Number(document.getElementById("buttonSize").value);
+
+  btn.style.width = size + "px";
+  btn.style.height = size + "px";
+  btn.style.background = document.getElementById("buttonColor").value;
+  btn.style.color = document.getElementById("buttonTextColor").value;
+  btn.style.borderRadius = document.getElementById("buttonShape").value + "px";
+  btn.style.fontSize = (size/3) + "px";
+
+  if (type === "text") {
+    btn.innerHTML = document.getElementById("buttonText").value || "Button";
+  } else {
+    loadFile(document.getElementById("buttonFile"), url => {
+      buttonMediaURL = url;
+      if (type === "image") {
+        btn.innerHTML = `<img src="${url}" alt="Button">`;
+      } else if (type === "video") {
+        btn.innerHTML = `<video src="${url}" autoplay loop muted></video>`;
+      }
+    });
+  }
+});
+
+// Vollbild starten
+document.getElementById("fullscreenBtn").addEventListener("click", () => {
+  const fullView = document.getElementById("fullscreenView");
+  const fullBtn = document.getElementById("fullscreenButton");
+  fullView.style.display = "flex";
+
+  const type = document.getElementById("buttonType").value;
+  const size = Number(document.getElementById("buttonSize").value);
+
+  fullBtn.style.width = size + "px";
+  fullBtn.style.height = size + "px";
+  fullBtn.style.background = document.getElementById("buttonColor").value;
+  fullBtn.style.color = document.getElementById("buttonTextColor").value;
+  fullBtn.style.borderRadius = document.getElementById("buttonShape").value + "px";
+  fullBtn.style.fontSize = (size/3) + "px";
+
+  if (type === "text") {
+    fullBtn.innerHTML = document.getElementById("buttonText").value || "Button";
+  } else if (buttonMediaURL) {
+    if (type === "image") {
+      fullBtn.innerHTML = `<img src="${buttonMediaURL}">`;
+    } else if (type === "video") {
+      fullBtn.innerHTML = `<video src="${buttonMediaURL}" autoplay loop muted></video>`;
+    }
+  }
+});
+
+// Event-Datei laden
+document.getElementById("eventFile").addEventListener("change", e => {
+  loadFile(e.target, url => eventMediaURL = url);
+});
+
+// Vollbild-Button Event
+document.getElementById("fullscreenButton").addEventListener("click", () => {
+  const out = document.getElementById("eventOutput");
+  const type = document.getElementById("eventType").value;
+  const color = document.getElementById("eventColor").value;
+  const size = document.getElementById("eventSize").value;
+  const duration = Number(document.getElementById("eventDuration").value);
+
+  out.style.display = "block";
+  out.style.color = color;
+  out.style.fontSize = size + "px";
+
+  if (type === "text") {
+    out.innerHTML = document.getElementById("eventText").value;
+  } else if (type === "image") {
+    out.innerHTML = `<img src="${eventMediaURL}" style="max-width:80%; max-height:80%;">`;
+  } else if (type === "video") {
+    out.innerHTML = `<video src="${eventMediaURL}" autoplay controls style="max-width:80%; max-height:80%;"></video>`;
+  } else if (type === "audio") {
+    out.innerHTML = `<audio src="${eventMediaURL}" autoplay controls></audio>`;
+  }
+
+  setTimeout(() => out.style.display = "none", duration);
+});
+
+// Vollbild beenden mit Button
+document.getElementById("exitFullscreen").addEventListener("click", () => {
+  document.getElementById("fullscreenView").style.display = "none";
+});
+
+// Vollbild beenden mit Escape
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    document.getElementById("fullscreenView").style.display = "none";
+  }
+});
+</script>
+
+</body>
+</html>
